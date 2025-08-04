@@ -3,7 +3,8 @@ name: Terraform Azure Deployment
 on:
   push:
     branches:
-      - main  # or change to your preferred branch
+      - main
+  workflow_dispatch:
 
 jobs:
   deploy:
@@ -22,7 +23,7 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
         with:
-          terraform_version: 1.7.5  # or whatever version you use
+          terraform_version: 1.7.5
 
       - name: Install Azure CLI
         run: |
