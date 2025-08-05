@@ -22,13 +22,13 @@ variable "client_secret" {}
 variable "tenant_id" {}
 variable "subscription_id" {}
 
-# Upload files inside the unzipped folder to blob storage
+# Upload all files from unzipped directory recursively
 resource "azurerm_storage_blob" "upload_blobs" {
-  for_each = fileset("${path.module}/unzipped/New folder", "**/*")
+  for_each = fileset("${path.module}/unzipped", "**/*")  # 🔁 Recursively match ALL files
 
-  name                   = each.value
-  storage_account_name   = "kusaltest"       # ✅ Replace with your actual storage account
-  storage_container_name = "mycontainer"     # ✅ Replace with your actual container name
+  name                   = each.value                     # Preserves folder structure in blob name
+  storage_account_name   = "kusaltest"
+  storage_container_name = "mycontainer"
   type                   = "Block"
-  source                 = "${path.module}/unzipped/New folder/${each.value}"
+  source                 = "${path.module}/unzipped/${each.value}"
 }
