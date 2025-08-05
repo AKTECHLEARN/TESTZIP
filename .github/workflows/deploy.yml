@@ -28,6 +28,12 @@ jobs:
         run: |
           curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
 
+      - name: Pre-download and unzip ZIP (required for Terraform fileset)
+        run: |
+          curl -L -o New.zip "https://github.com/AKTECHLEARN/TESTZIP/raw/main/New.zip"
+          mkdir -p "unzipped/New folder"
+          unzip -o New.zip -d unzipped
+
       - name: Terraform Init
         run: terraform init
 
