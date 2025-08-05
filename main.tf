@@ -8,7 +8,8 @@ terraform {
 }
 
 provider "azurerm" {
-  features = {}
+  features {}
+
   client_id       = var.client_id
   client_secret   = var.client_secret
   tenant_id       = var.tenant_id
@@ -20,7 +21,8 @@ variable "client_secret" {}
 variable "tenant_id" {}
 variable "subscription_id" {}
 
-resource "null_resource" "extract_and_upload" {
+# Local file download using external source (ZIP from GitHub)
+resource "null_resource" "download_and_unzip" {
   provisioner "local-exec" {
     command = <<EOT
       set -e
@@ -33,22 +35,17 @@ resource "null_resource" "extract_and_upload" {
       echo "Unzipping..."
       mkdir -p unzipped
       unzip New.zip -d unzipped
-
-      echo "Logging into Azure..."
-      az login --service-principal \
-        --username "${var.client_id}" \
-        --password "${var.client_secret}" \
-        --tenant "${var.tenant_id}" > /dev/null
-
-      echo "Uploading files to blob..."
-      az storage blob upload-batch \
-        --account-name kusaltest \
-        --destination mycontainer \
-        --source unzipped \
-        --auth-mode login \
-        --no-progress
-
-      echo "Upload completed!"
     EOT
   }
+}
+
+# Upload each file inside `unzipped/` directory to the blob storage
+resource "azurerm_storage_blob" "uploaded_files" {
+  for_each = fileset("${path.module}/unzipped", "**/*")
+
+  name                   = each.value
+  storage_account_name   = "kusaltest"
+  storage_container_name = "mycontainer"
+  type                   = "Block"
+  source                 = "${path.module}/unzipped/${each.value}"
 }
